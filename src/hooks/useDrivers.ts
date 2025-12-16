@@ -15,7 +15,7 @@ export interface Driver {
 
 export function useDrivers() {
     const { data, loading, error, refetch } =
-        useApi<Driver[]>('/api/fleet/drivers');
+        useApi<Driver[]>('/fleet/drivers');
 
     return {
         drivers: data || [],

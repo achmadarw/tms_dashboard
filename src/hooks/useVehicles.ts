@@ -12,9 +12,8 @@ export interface Vehicle {
 }
 
 export function useVehicles() {
-    const { data, loading, error, refetch } = useApi<Vehicle[]>(
-        '/api/fleet/vehicles'
-    );
+    const { data, loading, error, refetch } =
+        useApi<Vehicle[]>('/fleet/vehicles');
 
     return {
         vehicles: data || [],

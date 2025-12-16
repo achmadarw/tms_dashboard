@@ -55,7 +55,7 @@ export interface UpdateShipmentDto {
 
 export function useShipments() {
     const { data, loading, error, refetch } =
-        useApi<Shipment[]>('/api/shipments');
+        useApi<Shipment[]>('/shipments');
 
     return {
         shipments: data || [],
@@ -67,7 +67,7 @@ export function useShipments() {
 
 export function useShipment(id: number) {
     const { data, loading, error, refetch } = useApi<Shipment>(
-        `/api/shipments/${id}`
+        `/shipments/${id}`
     );
 
     return {
@@ -85,7 +85,7 @@ export function useCreateShipment() {
     >();
 
     const createShipment = async (data: CreateShipmentDto) => {
-        return await mutate('/api/shipments', 'POST', data);
+        return await mutate('/shipments', 'POST', data);
     };
 
     return {
@@ -102,7 +102,7 @@ export function useUpdateShipment() {
     >();
 
     const updateShipment = async (id: number, data: UpdateShipmentDto) => {
-        return await mutate(`/api/shipments/${id}`, 'PATCH', data);
+        return await mutate(`/shipments/${id}`, 'PATCH', data);
     };
 
     return {
@@ -116,7 +116,7 @@ export function useDeleteShipment() {
     const { mutate, loading, error } = useApiMutation<void, void>();
 
     const deleteShipment = async (id: number) => {
-        return await mutate(`/api/shipments/${id}`, 'DELETE');
+        return await mutate(`/shipments/${id}`, 'DELETE');
     };
 
     return {

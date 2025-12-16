@@ -12,7 +12,7 @@ export interface Order {
 }
 
 export function useOrders() {
-    const { data, loading, error, refetch } = useApi<Order[]>('/api/orders');
+    const { data, loading, error, refetch } = useApi<Order[]>('/orders');
 
     return {
         orders: data || [],
