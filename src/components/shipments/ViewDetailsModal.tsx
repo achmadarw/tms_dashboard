@@ -23,12 +23,23 @@ interface ViewDetailsModalProps {
 
 const statusConfig = {
     PENDING: { label: 'Pending', variant: 'warning' as const, icon: Clock },
-    PICKUP: { label: 'Pickup', variant: 'info' as const, icon: Package },
+    ASSIGNED: { label: 'Assigned', variant: 'info' as const, icon: Package },
+    PICKED_UP: { label: 'Picked Up', variant: 'info' as const, icon: Package },
     IN_TRANSIT: { label: 'In Transit', variant: 'info' as const, icon: Truck },
+    OUT_FOR_DELIVERY: {
+        label: 'Out for Delivery',
+        variant: 'info' as const,
+        icon: Truck,
+    },
     DELIVERED: {
         label: 'Delivered',
         variant: 'success' as const,
         icon: CheckCircle,
+    },
+    FAILED: {
+        label: 'Failed',
+        variant: 'danger' as const,
+        icon: XCircle,
     },
     CANCELLED: {
         label: 'Cancelled',

@@ -30,7 +30,11 @@ export default function CreateShipmentModal({
     const { orders, loading: ordersLoading } = useOrders();
     const { vehicles, loading: vehiclesLoading } = useVehicles();
     const { drivers, loading: driversLoading } = useDrivers();
-    const [formData, setFormData] = useState({
+
+    // Filter orders that don't have a shipment yet
+    const availableOrders = orders.filter((order) => !order.shipment);
+
+    const initialFormData = {
         orderId: '',
         vehicleId: '',
         driverId: '',
@@ -40,12 +44,23 @@ export default function CreateShipmentModal({
         deliveryDate: '',
         estimatedCost: '',
         notes: '',
-    });
+    };
+
+    const [formData, setFormData] = useState(initialFormData);
+
+    // Reset form when modal is opened
+    useEffect(() => {
+        if (isOpen) {
+            setFormData(initialFormData);
+        }
+    }, [isOpen]);
 
     // Auto-fill origin and destination when order is selected
     useEffect(() => {
         if (formData.orderId) {
-            const selectedOrder = orders.find((o) => o.id === formData.orderId);
+            const selectedOrder = availableOrders.find(
+                (o) => o.id === formData.orderId
+            );
             if (selectedOrder) {
                 setFormData((prev) => ({
                     ...prev,
@@ -54,7 +69,7 @@ export default function CreateShipmentModal({
                 }));
             }
         }
-    }, [formData.orderId, orders]);
+    }, [formData.orderId, availableOrders]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -72,20 +87,11 @@ export default function CreateShipmentModal({
         });
 
         if (result) {
+            // Reset form first
+            setFormData(initialFormData);
+            // Then call success callbacks
             onSuccess();
             onClose();
-            // Reset form
-            setFormData({
-                orderId: '',
-                vehicleId: '',
-                driverId: '',
-                origin: '',
-                destination: '',
-                pickupDate: '',
-                deliveryDate: '',
-                estimatedCost: '',
-                notes: '',
-            });
         }
     };
 
@@ -134,17 +140,18 @@ export default function CreateShipmentModal({
                                     ? 'Loading orders...'
                                     : 'Select an order'}
                             </option>
-                            {orders.map((order) => (
+                            {availableOrders.map((order) => (
                                 <option key={order.id} value={order.id}>
                                     {order.orderNumber} - {order.customer} (
                                     {order.status})
                                 </option>
                             ))}
                         </select>
-                        {orders.length === 0 && !ordersLoading && (
+                        {availableOrders.length === 0 && !ordersLoading && (
                             <p className='text-sm text-red-600 mt-1'>
-                                No orders available. Please create an order
-                                first.
+                                {orders.length === 0
+                                    ? 'No orders available. Please create an order first.'
+                                    : 'All orders already have shipments. Please create a new order.'}
                             </p>
                         )}
                     </div>

@@ -49,10 +49,16 @@ interface LocationUpdate {
 const statusConfig = {
     PENDING: { label: 'Pending', color: 'bg-yellow-500', icon: Clock },
     ASSIGNED: { label: 'Assigned', color: 'bg-indigo-500', icon: Package },
-    PICKUP: { label: 'Pickup', color: 'bg-blue-500', icon: Package },
+    PICKED_UP: { label: 'Picked Up', color: 'bg-blue-500', icon: Package },
     IN_TRANSIT: { label: 'In Transit', color: 'bg-purple-500', icon: Truck },
+    OUT_FOR_DELIVERY: {
+        label: 'Out for Delivery',
+        color: 'bg-orange-500',
+        icon: Truck,
+    },
     DELIVERED: { label: 'Delivered', color: 'bg-green-500', icon: CheckCircle },
-    CANCELLED: { label: 'Cancelled', color: 'bg-red-500', icon: AlertCircle },
+    FAILED: { label: 'Failed', color: 'bg-red-500', icon: AlertCircle },
+    CANCELLED: { label: 'Cancelled', color: 'bg-gray-500', icon: AlertCircle },
 };
 
 export default function TrackLocationModal({

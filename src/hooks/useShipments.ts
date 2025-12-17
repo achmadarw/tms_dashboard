@@ -34,9 +34,11 @@ export interface Shipment {
     status:
         | 'PENDING'
         | 'ASSIGNED'
-        | 'PICKUP'
+        | 'PICKED_UP'
         | 'IN_TRANSIT'
+        | 'OUT_FOR_DELIVERY'
         | 'DELIVERED'
+        | 'FAILED'
         | 'CANCELLED';
     totalWeight: number;
     totalVolume: number;
@@ -65,9 +67,11 @@ export interface UpdateShipmentDto {
     status?:
         | 'PENDING'
         | 'ASSIGNED'
-        | 'PICKUP'
+        | 'PICKED_UP'
         | 'IN_TRANSIT'
+        | 'OUT_FOR_DELIVERY'
         | 'DELIVERED'
+        | 'FAILED'
         | 'CANCELLED';
     actualDeliveryDate?: string;
     actualCost?: number;
@@ -121,8 +125,8 @@ export function useUpdateShipment() {
         UpdateShipmentDto
     >();
 
-    const updateShipment = async (id: number, data: UpdateShipmentDto) => {
-        return await mutate(`/shipments/${id}`, 'PATCH', data);
+    const updateShipment = async (id: string, data: UpdateShipmentDto) => {
+        return await mutate(`/shipments/${id}/status`, 'PUT', data);
     };
 
     return {
@@ -135,7 +139,7 @@ export function useUpdateShipment() {
 export function useDeleteShipment() {
     const { mutate, loading, error } = useApiMutation<void, void>();
 
-    const deleteShipment = async (id: number) => {
+    const deleteShipment = async (id: string) => {
         return await mutate(`/shipments/${id}`, 'DELETE');
     };
 

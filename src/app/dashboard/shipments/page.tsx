@@ -50,8 +50,8 @@ const statusConfig = {
         icon: Package,
         color: 'text-indigo-600',
     },
-    PICKUP: {
-        label: 'Pickup',
+    PICKED_UP: {
+        label: 'Picked Up',
         variant: 'info' as const,
         icon: Package,
         color: 'text-blue-600',
@@ -62,17 +62,29 @@ const statusConfig = {
         icon: Truck,
         color: 'text-purple-600',
     },
+    OUT_FOR_DELIVERY: {
+        label: 'Out for Delivery',
+        variant: 'info' as const,
+        icon: Truck,
+        color: 'text-orange-600',
+    },
     DELIVERED: {
         label: 'Delivered',
         variant: 'success' as const,
         icon: CheckCircle,
         color: 'text-green-600',
     },
+    FAILED: {
+        label: 'Failed',
+        variant: 'danger' as const,
+        icon: XCircle,
+        color: 'text-red-600',
+    },
     CANCELLED: {
         label: 'Cancelled',
         variant: 'danger' as const,
         icon: XCircle,
-        color: 'text-red-600',
+        color: 'text-gray-600',
     },
 };
 
@@ -165,8 +177,9 @@ export default function ShipmentsPage() {
             inProgress: shipments.filter(
                 (s) =>
                     s.status === 'ASSIGNED' ||
-                    s.status === 'PICKUP' ||
-                    s.status === 'IN_TRANSIT'
+                    s.status === 'PICKED_UP' ||
+                    s.status === 'IN_TRANSIT' ||
+                    s.status === 'OUT_FOR_DELIVERY'
             ).length,
             delivered: shipments.filter((s) => s.status === 'DELIVERED').length,
         };
@@ -348,9 +361,14 @@ export default function ShipmentsPage() {
                             >
                                 <option value='all'>All Status</option>
                                 <option value='PENDING'>Pending</option>
-                                <option value='PICKUP'>Pickup</option>
+                                <option value='ASSIGNED'>Assigned</option>
+                                <option value='PICKED_UP'>Picked Up</option>
                                 <option value='IN_TRANSIT'>In Transit</option>
+                                <option value='OUT_FOR_DELIVERY'>
+                                    Out for Delivery
+                                </option>
                                 <option value='DELIVERED'>Delivered</option>
+                                <option value='FAILED'>Failed</option>
                                 <option value='CANCELLED'>Cancelled</option>
                             </select>
                         </div>
@@ -380,15 +398,6 @@ export default function ShipmentsPage() {
                                 ? 'Try adjusting your search or filter'
                                 : 'Create your first shipment to get started'}
                         </p>
-                        {!searchTerm && statusFilter === 'all' && (
-                            <Button
-                                variant='primary'
-                                icon={Plus}
-                                onClick={() => setIsCreateModalOpen(true)}
-                            >
-                                Create Shipment
-                            </Button>
-                        )}
                     </div>
                 ) : (
                     <div className='overflow-x-auto'>
