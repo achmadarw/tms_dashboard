@@ -42,7 +42,8 @@ export default function ViewDetailsModal({
     onClose,
     shipment,
 }: ViewDetailsModalProps) {
-    const StatusIcon = statusConfig[shipment.status].icon;
+    const statusInfo = statusConfig[shipment.status] || statusConfig.PENDING;
+    const StatusIcon = statusInfo.icon;
 
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleString('id-ID', {
@@ -79,9 +80,9 @@ export default function ViewDetailsModal({
                                 Order: {shipment.order?.orderNumber || 'N/A'}
                             </p>
                         </div>
-                        <Badge variant={statusConfig[shipment.status].variant}>
+                        <Badge variant={statusInfo.variant}>
                             <StatusIcon className='h-4 w-4 mr-1' />
-                            {statusConfig[shipment.status].label}
+                            {statusInfo.label}
                         </Badge>
                     </div>
                 </div>

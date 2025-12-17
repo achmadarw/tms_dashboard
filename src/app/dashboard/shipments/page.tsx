@@ -5,11 +5,16 @@ import PageHeader from '@/components/ui/PageHeader';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import StatCard from '@/components/ui/StatCard';
-import { useShipments, Shipment } from '@/hooks/useShipments';
+import { useShipments } from '@/hooks/useShipments';
+import {
+    useTransformedShipments,
+    ShipmentWithDisplayData,
+} from '@/utils/shipmentAdapter';
 import CreateShipmentModal from '@/components/shipments/CreateShipmentModal';
 import UpdateStatusModal from '@/components/shipments/UpdateStatusModal';
 import ViewDetailsModal from '@/components/shipments/ViewDetailsModal';
 import DocumentsModal from '@/components/shipments/DocumentsModal';
+import TrackLocationModal from '@/components/shipments/TrackLocationModal';
 import {
     Plus,
     Download,
@@ -38,6 +43,12 @@ const statusConfig = {
         variant: 'warning' as const,
         icon: Clock,
         color: 'text-yellow-600',
+    },
+    ASSIGNED: {
+        label: 'Assigned',
+        variant: 'info' as const,
+        icon: Package,
+        color: 'text-indigo-600',
     },
     PICKUP: {
         label: 'Pickup',
@@ -94,15 +105,21 @@ function formatDistance(distance: number): string {
 
 // Helper function to format date
 function formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
+    if (!dateString) return 'N/A';
+    try {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    } catch {
+        return 'Invalid Date';
+    }
 }
 
 export default function ShipmentsPage() {
-    const { shipments, loading, error, refetch } = useShipments();
+    const { shipments: rawShipments, loading, error, refetch } = useShipments();
+    const shipments = useTransformedShipments(rawShipments);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
 
@@ -111,9 +128,9 @@ export default function ShipmentsPage() {
     const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
-    const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(
-        null
-    );
+    const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+    const [selectedShipment, setSelectedShipment] =
+        useState<ShipmentWithDisplayData | null>(null);
 
     const filteredShipments = useMemo(() => {
         return shipments.filter((shipment) => {
@@ -146,31 +163,32 @@ export default function ShipmentsPage() {
             total: shipments.length,
             pending: shipments.filter((s) => s.status === 'PENDING').length,
             inProgress: shipments.filter(
-                (s) => s.status === 'PICKUP' || s.status === 'IN_TRANSIT'
+                (s) =>
+                    s.status === 'ASSIGNED' ||
+                    s.status === 'PICKUP' ||
+                    s.status === 'IN_TRANSIT'
             ).length,
             delivered: shipments.filter((s) => s.status === 'DELIVERED').length,
         };
     }, [shipments]);
 
     // Modal handlers
-    const handleViewDetails = (shipment: Shipment) => {
+    const handleViewDetails = (shipment: ShipmentWithDisplayData) => {
         setSelectedShipment(shipment);
         setIsViewModalOpen(true);
     };
 
-    const handleUpdateStatus = (shipment: Shipment) => {
+    const handleUpdateStatus = (shipment: ShipmentWithDisplayData) => {
         setSelectedShipment(shipment);
         setIsUpdateModalOpen(true);
     };
 
-    const handleTrackLocation = (shipment: Shipment) => {
-        // TODO: Implement real-time tracking map
-        alert(
-            `Track shipment: ${shipment.shipmentNumber}\nFeature coming soon!`
-        );
+    const handleTrackLocation = (shipment: ShipmentWithDisplayData) => {
+        setSelectedShipment(shipment);
+        setIsTrackModalOpen(true);
     };
 
-    const handleDocuments = (shipment: Shipment) => {
+    const handleDocuments = (shipment: ShipmentWithDisplayData) => {
         setSelectedShipment(shipment);
         setIsDocumentsModalOpen(true);
     };
@@ -647,6 +665,15 @@ export default function ShipmentsPage() {
                         isOpen={isDocumentsModalOpen}
                         onClose={() => {
                             setIsDocumentsModalOpen(false);
+                            setSelectedShipment(null);
+                        }}
+                        shipment={selectedShipment}
+                    />
+
+                    <TrackLocationModal
+                        isOpen={isTrackModalOpen}
+                        onClose={() => {
+                            setIsTrackModalOpen(false);
                             setSelectedShipment(null);
                         }}
                         shipment={selectedShipment}

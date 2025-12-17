@@ -1,41 +1,56 @@
 import { useApi, useApiMutation } from './useApi';
 
 export interface Shipment {
-    id: number;
+    id: string;
     shipmentNumber: string;
-    orderId: number;
+    orderId: string;
     order?: {
         orderNumber: string;
-        customer: string;
+        customerName: string;
     };
-    vehicleId: number | null;
+    vehicleId: string | null;
     vehicle?: {
-        plateNumber: string;
-        type: string;
+        vehicleNumber: string;
+        licensePlate: string;
     };
-    driverId: number | null;
+    driverId: string | null;
     driver?: {
-        name: string;
-        phone: string;
+        user: {
+            firstName: string;
+            lastName: string;
+            phone: string;
+        };
     };
-    origin: string;
-    destination: string;
-    pickupDate: string;
-    deliveryDate: string;
-    actualDeliveryDate: string | null;
-    status: 'PENDING' | 'PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
-    distance: number;
-    estimatedCost: number;
+    pickupAddress: string;
+    pickupLat: number;
+    pickupLng: number;
+    deliveryAddress: string;
+    deliveryLat: number;
+    deliveryLng: number;
+    pickupScheduled: string;
+    deliveryScheduled: string;
+    actualPickupTime: string | null;
+    actualDeliveryTime: string | null;
+    status:
+        | 'PENDING'
+        | 'ASSIGNED'
+        | 'PICKUP'
+        | 'IN_TRANSIT'
+        | 'DELIVERED'
+        | 'CANCELLED';
+    totalWeight: number;
+    totalVolume: number;
+    totalCost: number;
     actualCost: number | null;
-    notes: string | null;
+    specialInstructions: string | null;
     createdAt: string;
     updatedAt: string;
 }
 
 export interface CreateShipmentDto {
-    orderId: number;
-    vehicleId?: number;
-    driverId?: number;
+    orderId: string;
+    vehicleId?: string;
+    driverId?: string;
     origin: string;
     destination: string;
     pickupDate: string;
@@ -45,17 +60,22 @@ export interface CreateShipmentDto {
 }
 
 export interface UpdateShipmentDto {
-    vehicleId?: number;
-    driverId?: number;
-    status?: 'PENDING' | 'PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+    vehicleId?: string;
+    driverId?: string;
+    status?:
+        | 'PENDING'
+        | 'ASSIGNED'
+        | 'PICKUP'
+        | 'IN_TRANSIT'
+        | 'DELIVERED'
+        | 'CANCELLED';
     actualDeliveryDate?: string;
     actualCost?: number;
     notes?: string;
 }
 
 export function useShipments() {
-    const { data, loading, error, refetch } =
-        useApi<Shipment[]>('/shipments');
+    const { data, loading, error, refetch } = useApi<Shipment[]>('/shipments');
 
     return {
         shipments: data || [],
