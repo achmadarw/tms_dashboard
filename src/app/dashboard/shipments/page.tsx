@@ -15,6 +15,7 @@ import UpdateStatusModal from '@/components/shipments/UpdateStatusModal';
 import ViewDetailsModal from '@/components/shipments/ViewDetailsModal';
 import DocumentsModal from '@/components/shipments/DocumentsModal';
 import TrackLocationModal from '@/components/shipments/TrackLocationModal';
+import DeleteShipmentModal from '@/components/shipments/DeleteShipmentModal';
 import {
     Plus,
     Download,
@@ -35,6 +36,7 @@ import {
     Calendar,
     RefreshCw,
     Loader2,
+    Trash2,
 } from 'lucide-react';
 
 const statusConfig = {
@@ -141,8 +143,14 @@ export default function ShipmentsPage() {
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
     const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedShipment, setSelectedShipment] =
         useState<ShipmentWithDisplayData | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     const filteredShipments = useMemo(() => {
         return shipments.filter((shipment) => {
@@ -204,6 +212,93 @@ export default function ShipmentsPage() {
     const handleDocuments = (shipment: ShipmentWithDisplayData) => {
         setSelectedShipment(shipment);
         setIsDocumentsModalOpen(true);
+    };
+
+    const handleDelete = (shipment: ShipmentWithDisplayData) => {
+        setSelectedShipment(shipment);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!selectedShipment) return;
+
+        setIsDeleting(true);
+        try {
+            const response = await fetch(
+                `/api/shipments/${selectedShipment.id}`,
+                {
+                    method: 'DELETE',
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Failed to delete shipment');
+            }
+
+            // Refresh data
+            await refetch();
+
+            // Close modal
+            setIsDeleteModalOpen(false);
+            setSelectedShipment(null);
+        } catch (error) {
+            console.error('Error deleting shipment:', error);
+            alert('Failed to delete shipment. Please try again.');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredShipments.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedShipments = filteredShipments.slice(startIndex, endIndex);
+
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleItemsPerPageChange = (value: number) => {
+        setItemsPerPage(value);
+        setCurrentPage(1);
+    };
+
+    // Generate page numbers
+    const getPageNumbers = () => {
+        const pages: (number | string)[] = [];
+        const maxPagesToShow = 5;
+
+        if (totalPages <= maxPagesToShow) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 4; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - 3; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+                pages.push('...');
+                pages.push(currentPage - 1);
+                pages.push(currentPage);
+                pages.push(currentPage + 1);
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+
+        return pages;
     };
 
     const handleExport = () => {
@@ -431,7 +526,7 @@ export default function ShipmentsPage() {
                                 </tr>
                             </thead>
                             <tbody className='divide-y divide-gray-200'>
-                                {filteredShipments.map((shipment) => {
+                                {paginatedShipments.map((shipment) => {
                                     const config =
                                         statusConfig[
                                             shipment.status as keyof typeof statusConfig
@@ -481,15 +576,17 @@ export default function ShipmentsPage() {
                                                     <div className='flex items-center gap-1 text-sm'>
                                                         <MapPin className='h-3.5 w-3.5 text-green-600' />
                                                         <span className='font-medium'>
-                                                            {shipment.origin}
+                                                            {shipment.order
+                                                                ?.pickupAddress ||
+                                                                shipment.origin}
                                                         </span>
                                                     </div>
                                                     <div className='flex items-center gap-1 text-sm'>
                                                         <MapPin className='h-3.5 w-3.5 text-red-600' />
                                                         <span className='font-medium'>
-                                                            {
-                                                                shipment.destination
-                                                            }
+                                                            {shipment.order
+                                                                ?.deliveryAddress ||
+                                                                shipment.destination}
                                                         </span>
                                                     </div>
                                                     <div className='text-xs text-gray-500'>
@@ -627,6 +724,17 @@ export default function ShipmentsPage() {
                                                     >
                                                         <FileText className='h-4 w-4' />
                                                     </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(
+                                                                shipment
+                                                            )
+                                                        }
+                                                        className='p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors'
+                                                        title='Delete Shipment'
+                                                    >
+                                                        <Trash2 className='h-4 w-4' />
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -634,6 +742,86 @@ export default function ShipmentsPage() {
                                 })}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {!loading && !error && filteredShipments.length > 0 && (
+                    <div className='flex flex-col sm:flex-row items-center justify-between px-6 py-4 border-t border-gray-200 gap-4'>
+                        <div className='flex items-center gap-4'>
+                            <p className='text-sm text-gray-600'>
+                                Showing {startIndex + 1} to{' '}
+                                {Math.min(endIndex, filteredShipments.length)}{' '}
+                                of {filteredShipments.length} shipments
+                            </p>
+                            <div className='flex items-center gap-2'>
+                                <label className='text-sm text-gray-600'>
+                                    Per page:
+                                </label>
+                                <select
+                                    value={itemsPerPage}
+                                    onChange={(e) =>
+                                        handleItemsPerPageChange(
+                                            parseInt(e.target.value)
+                                        )
+                                    }
+                                    className='px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm'
+                                >
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={25}>25</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() =>
+                                    handlePageChange(currentPage - 1)
+                                }
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
+                            <div className='flex items-center gap-1'>
+                                {getPageNumbers().map((page, index) =>
+                                    page === '...' ? (
+                                        <span
+                                            key={`ellipsis-${index}`}
+                                            className='px-3 py-1.5 text-gray-500'
+                                        >
+                                            ...
+                                        </span>
+                                    ) : (
+                                        <button
+                                            key={page}
+                                            onClick={() =>
+                                                handlePageChange(page as number)
+                                            }
+                                            className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                                                currentPage === page
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'hover:bg-gray-100 text-gray-700'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    )
+                                )}
+                            </div>
+                            <Button
+                                variant='outline'
+                                size='sm'
+                                onClick={() =>
+                                    handlePageChange(currentPage + 1)
+                                }
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -686,6 +874,17 @@ export default function ShipmentsPage() {
                             setSelectedShipment(null);
                         }}
                         shipment={selectedShipment}
+                    />
+
+                    <DeleteShipmentModal
+                        isOpen={isDeleteModalOpen}
+                        onClose={() => {
+                            setIsDeleteModalOpen(false);
+                            setSelectedShipment(null);
+                        }}
+                        onConfirm={handleConfirmDelete}
+                        shipment={selectedShipment}
+                        isDeleting={isDeleting}
                     />
                 </>
             )}

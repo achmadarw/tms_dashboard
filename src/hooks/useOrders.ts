@@ -3,13 +3,27 @@ import { useApi } from './useApi';
 export interface Order {
     id: string;
     orderNumber: string;
-    customerName: string; // Backend uses customerName
+    customerName: string;
     customer?: string; // Alias for compatibility
-    status: string;
+    customerEmail: string;
+    customerPhone: string;
+    status: 'PENDING' | 'CONFIRMED' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+    priority: string; // LOW, NORMAL, HIGH, URGENT
     pickupAddress: string;
+    pickupLat?: number;
+    pickupLng?: number;
     deliveryAddress: string;
+    deliveryLat?: number;
+    deliveryLng?: number;
     totalWeight: number;
-    totalVolume: number;
+    totalVolume?: number;
+    totalQty: number;
+    requestedDate: string;
+    estimatedDelivery?: string;
+    actualDelivery?: string;
+    specialNotes?: string;
+    createdAt: string;
+    updatedAt: string;
     shipment?: {
         id: string;
         shipmentNumber: string;

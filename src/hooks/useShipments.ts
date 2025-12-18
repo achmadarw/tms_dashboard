@@ -7,6 +7,8 @@ export interface Shipment {
     order?: {
         orderNumber: string;
         customerName: string;
+        pickupAddress?: string;
+        deliveryAddress?: string;
     };
     vehicleId: string | null;
     vehicle?: {

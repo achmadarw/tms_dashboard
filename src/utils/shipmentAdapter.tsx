@@ -88,8 +88,10 @@ export function transformShipment(shipment: Shipment): ShipmentWithDisplayData {
     return {
         ...shipment,
         // Map backend fields to expected frontend fields
-        origin: shipment.pickupAddress || '',
-        destination: shipment.deliveryAddress || '',
+        // Prioritize order addresses if available (real-time data)
+        origin: shipment.order?.pickupAddress || shipment.pickupAddress || '',
+        destination:
+            shipment.order?.deliveryAddress || shipment.deliveryAddress || '',
         pickupDate: shipment.pickupScheduled,
         deliveryDate: shipment.deliveryScheduled,
         estimatedCost: shipment.totalCost || 0,
