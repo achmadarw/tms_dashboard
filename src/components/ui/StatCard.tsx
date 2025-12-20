@@ -6,7 +6,7 @@ interface StatCardProps {
     value: string | number;
     icon: LucideIcon;
     description?: string;
-    color?: 'blue' | 'purple' | 'green' | 'orange' | 'red' | 'yellow';
+    color?: 'blue' | 'purple' | 'green' | 'orange' | 'red' | 'yellow' | 'gray';
     onClick?: () => void;
 }
 
@@ -40,6 +40,11 @@ const colorSchemes = {
         bg: 'bg-yellow-50',
         iconBg: 'bg-yellow-500',
         text: 'text-yellow-600',
+    },
+    gray: {
+        bg: 'bg-gray-50',
+        iconBg: 'bg-gray-500',
+        text: 'text-gray-600',
     },
 };
 
